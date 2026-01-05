@@ -17,6 +17,24 @@ exports.createAdmin = async (req, res) => {
 };
 
 exports.listAdmins = async (req, res) => {
-  const admins = await adminService.getAdmins();
-  res.json({ success: true, admins });
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const { admins, total } = await adminService.getAdmins({ page, limit });
+
+    res.json({
+      success: true,
+      admins,
+      total,
+      page,
+      limit
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch admins"
+    });
+  }
 };
+
