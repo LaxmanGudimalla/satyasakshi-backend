@@ -26,12 +26,26 @@ exports.createAdmin = async ({ name, email, password }) => {
   return { name, email };
 };
 
-exports.getAdmins = async () => {
-  const [rows] = await db.query(
+exports.getAdmins = async ({ page = 1, limit = 10 }) => {
+  const offset = (page - 1) * limit;
+
+  const [admins] = await db.query(
     `SELECT u.id, u.name, u.email, u.created_at
+     FROM users u
+     JOIN roles r ON u.role_id = r.id
+     WHERE r.name = 'ADMIN'
+     ORDER BY u.created_at DESC
+     LIMIT ? OFFSET ?`,
+    [limit, offset]
+  );
+
+  const [[{ total }]] = await db.query(
+    `SELECT COUNT(*) as total
      FROM users u
      JOIN roles r ON u.role_id = r.id
      WHERE r.name = 'ADMIN'`
   );
-  return rows;
+
+  return { admins, total };
 };
+
