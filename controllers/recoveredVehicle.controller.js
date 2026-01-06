@@ -62,3 +62,64 @@ exports.addRecoveredVehicle = async (req, res) => {
     });
   }
 };
+
+
+exports.getRecoveredVehicles = async (req, res) => {
+  try {
+    const {
+      registration_number,
+      chassis_number,
+      engine_number,
+      last4_chassis_reg,
+      last4_engine_reg,
+      last5_engine_chassis,
+      last6_engine_chassis
+    } = req.query;
+
+    // ❌ No search criteria
+    if (
+      !registration_number &&
+      !chassis_number &&
+      !engine_number &&
+      !last4_chassis_reg &&
+      !last4_engine_reg &&
+      !last5_engine_chassis &&
+      !last6_engine_chassis
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one search field is required"
+      });
+    }
+
+    const data = await recoveredVehicleService.getRecoveredVehicles({
+      registration_number,
+      chassis_number,
+      engine_number,
+      last4_chassis_reg,
+      last4_engine_reg,
+      last5_engine_chassis,
+      last6_engine_chassis
+    });
+
+    if (!data.length) {
+      return res.status(404).json({
+        success: false,
+        message: "Vehicle not found"
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      status: 1,
+      data
+    });
+
+  } catch (error) {
+    console.error("❌ Get Recovered Vehicle Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+  }
+};
