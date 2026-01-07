@@ -27,9 +27,10 @@ exports.getChallans = async (req, res) => {
     );
 
     const totalValue = rows.reduce(
-      (sum, row) => sum + (row.totalValue || 0),
-      0
-    );
+  (sum, row) => sum + Number(row.totalValue || 0),
+  0
+);
+
 
     res.json({
       success: true,

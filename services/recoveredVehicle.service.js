@@ -30,6 +30,7 @@ exports.checkDuplicateRecoveredVehicle = async ({
 exports.addRecoveredVehicle = async (payload) => {
   const {
     case_status,
+     dd_no,
     registration_number,
     vehicle_type,
     other_vehicle_type,
@@ -56,6 +57,7 @@ exports.addRecoveredVehicle = async (payload) => {
   const insertQuery = `
     INSERT INTO recovered_vehicles (
       case_status,
+      dd_no,
       registration_number,
       vehicle_type,
       other_vehicle_type,
@@ -82,6 +84,7 @@ exports.addRecoveredVehicle = async (payload) => {
 
   const [result] = await db.query(insertQuery, [
     case_status,
+    dd_no,
     registration_number,
     vehicle_type,
     other_vehicle_type,

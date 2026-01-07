@@ -11,7 +11,8 @@ exports.saveVehicle = async (vehicleData) => {
     maker,
     makerModal,
     regDate,
-    vehicleColor
+    vehicleColor,
+    rtoCode  
   } = vehicleData;
 
   const registrationYear = regDate
@@ -22,6 +23,7 @@ exports.saveVehicle = async (vehicleData) => {
     INSERT INTO vehicle_service_history
     (
       registration_number,
+      rto_code, 
       chassis_number,
       engine_number,
       make,
@@ -29,11 +31,12 @@ exports.saveVehicle = async (vehicleData) => {
       registration_year,
       colour
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?,?)
   `;
 
   const values = [
     regNo,
+     rtoCode,  
     chassisNo,
     engineNo,
     maker,
