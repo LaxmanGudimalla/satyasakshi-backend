@@ -30,7 +30,8 @@ exports.getReRegistrationData  = async ({ registrationNumber, chassisNumber, eng
       v.engine_number,
       v.registration_year,
       v.colour,
-
+      h.rto_code,   
+      mk.vehicle_type AS vehicle_type,
       cm.company_name,
       mk.make_code,
       md.model,
@@ -41,6 +42,8 @@ exports.getReRegistrationData  = async ({ registrationNumber, chassisNumber, eng
       pi.pin_code
 
     FROM vehicles v
+    LEFT JOIN vehicle_service_history h 
+      ON v.registration_number = h.registration_number
     LEFT JOIN company_master cm ON v.company_id = cm.company_id
     LEFT JOIN model_master md ON v.model_id = md.model_id
     LEFT JOIN make_master mk ON md.make_id = mk.make_id

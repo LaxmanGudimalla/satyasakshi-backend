@@ -28,7 +28,7 @@ exports.getReRegistrationData = async (req, res) => {
       model: v.model,
       registrationYear: v.registration_year,
       colour: v.colour,
-      rtoCode: v.registration_number?.substring(0,4) || ""
+      rtoCode: v.rto_code || ""
     })),
 
     // ---------- ARRAY FOR POPUP ----------
