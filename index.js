@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 
-const drivingLicenceRoutes = require("./routes/drivingLicence.routes");
+const reRegistrationRoutes = require("./routes/reRegistration.routes");
 const challanRoutes = require("./routes/challan.routes");
 const vehicleRoutes = require("./routes/vehicle.routes");
 const recoveredVehicleRoutes = require("./routes/recoveredVehicle.routes");
@@ -14,7 +14,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/api", drivingLicenceRoutes);
+app.use("/api", reRegistrationRoutes);
 app.use("/api", challanRoutes);
 app.use("/api", vehicleRoutes);
 app.use("/api", recoveredVehicleRoutes);
