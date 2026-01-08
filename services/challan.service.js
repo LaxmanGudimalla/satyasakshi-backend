@@ -7,7 +7,16 @@ exports.fetchChallanData = async (registrationNumber) => {
     SELECT
       c.challan_no,
       c.reg_no,
-      MAX(c.theft_date) AS theft_date,
+       c.challan_incident,
+     MAX(c.theft_date) AS theft_date,
+MAX(c.challan_date) AS challan_date,
+
+CASE
+  WHEN MAX(c.challan_date) > MAX(c.theft_date)
+  THEN 'After'
+  ELSE 'Before'
+END AS incidentType,
+
 
       COUNT(o.id) AS noOfOffences,
       COALESCE(SUM(CAST(o.penalty AS DECIMAL(10,2))), 0) AS totalValue,
@@ -60,12 +69,15 @@ exports.fetchChallanData = async (registrationNumber) => {
     mfgYear: r.registration_year || "NA",
 
     theftDate: r.theft_date,
-    challanIncident: r.noOfOffences > 0 ? "Yes" : "No",
-    challanNumber: r.challan_no,
+    // challanIncident: r.noOfOffences > 0 ? "Yes" : "No",
+    incidentType: r.incidentType,
+
+       challanNumber: r.challan_no,   
+
     noOfChallan: r.noOfOffences,
     totalValue: Number(r.totalValue),
+idSubmitted: r.challan_incident === "YES" ? "Yes" : "No",
 
-    idSubmitted: "No",
     viewId: ""
   }));
 };

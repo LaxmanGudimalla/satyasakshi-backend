@@ -115,66 +115,73 @@ exports.getRecoveredVehicles = async (filters) => {
   let sql = `SELECT * FROM recovered_vehicles WHERE 1=1`;
   let params = [];
 
+  // 1️⃣ Exact Registration Number
   if (filters.registration_number) {
     sql += ` AND registration_number = ?`;
     params.push(filters.registration_number.trim());
   }
 
+  // 2️⃣ Exact Chassis Number
   if (filters.chassis_number) {
     sql += ` AND chassis_number = ?`;
     params.push(filters.chassis_number.trim());
   }
 
+  // 3️⃣ Exact Engine Number
   if (filters.engine_number) {
     sql += ` AND engine_number = ?`;
     params.push(filters.engine_number.trim());
   }
 
-  // 🔹 Last 4 digits – chassis + reg
-  if (filters.last4_chassis_reg) {
+  // 4️⃣ Chassis FIRST 6 + Registration LAST 4
+  if (filters.chassis_first6_reg_last4) {
     sql += `
-      AND RIGHT(chassis_number, 4) = ?
+      AND LEFT(chassis_number, 6) = ?
       AND RIGHT(registration_number, 4) = ?
     `;
     params.push(
-      filters.last4_chassis_reg,
-      filters.last4_chassis_reg
+      filters.chassis_first6_reg_last4.chassis6,
+      filters.chassis_first6_reg_last4.regLast4
     );
   }
 
-  // 🔹 Last 4 digits – engine + reg
-  if (filters.last4_engine_reg) {
+  // 5️⃣ Engine FIRST 6 + Registration LAST 4
+  if (filters.engine_first6_reg_last4) {
     sql += `
-      AND RIGHT(engine_number, 4) = ?
+      AND LEFT(engine_number, 6) = ?
       AND RIGHT(registration_number, 4) = ?
     `;
     params.push(
-      filters.last4_engine_reg,
-      filters.last4_engine_reg
+      filters.engine_first6_reg_last4.engine6,
+      filters.engine_first6_reg_last4.regLast4
     );
   }
 
-  // 🔹 Last 5 digits – engine + chassis
-  if (filters.last5_engine_chassis) {
+  // 6️⃣ Engine OR Chassis LAST 5
+  if (filters.engine_or_chassis_last5) {
     sql += `
-      AND RIGHT(engine_number, 5) = ?
-      AND RIGHT(chassis_number, 5) = ?
+      AND (
+        RIGHT(engine_number, 5) = ?
+        OR RIGHT(chassis_number, 5) = ?
+      )
     `;
     params.push(
-      filters.last5_engine_chassis,
-      filters.last5_engine_chassis
+      filters.engine_or_chassis_last5,
+      filters.engine_or_chassis_last5
     );
   }
 
-  // 🔹 Last 6 digits – engine + chassis
-  if (filters.last6_engine_chassis) {
+  // 7️⃣ Engine OR Chassis LAST 6
+  if (filters.engine_or_chassis_last6) {
     sql += `
-      AND RIGHT(engine_number, 6) = ?
-      AND RIGHT(chassis_number, 6) = ?
+      AND (
+        RIGHT(engine_number, 6) = ?
+        OR RIGHT(chassis_number, 6) = ?
+      )
     `;
     params.push(
-      filters.last6_engine_chassis,
-      filters.last6_engine_chassis
+      filters.engine_or_chassis_last6,
+      filters.engine_or_chassis_last6
     );
   }
 

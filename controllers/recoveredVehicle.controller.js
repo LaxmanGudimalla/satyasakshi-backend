@@ -63,17 +63,19 @@ exports.addRecoveredVehicle = async (req, res) => {
   }
 };
 
-
 exports.getRecoveredVehicles = async (req, res) => {
   try {
     const {
       registration_number,
       chassis_number,
       engine_number,
-      last4_chassis_reg,
-      last4_engine_reg,
-      last5_engine_chassis,
-      last6_engine_chassis
+
+      chassis6,
+      engine6,
+      reg_last4,
+
+      engine_or_chassis_last5,
+      engine_or_chassis_last6
     } = req.query;
 
     // ❌ No search criteria
@@ -81,10 +83,11 @@ exports.getRecoveredVehicles = async (req, res) => {
       !registration_number &&
       !chassis_number &&
       !engine_number &&
-      !last4_chassis_reg &&
-      !last4_engine_reg &&
-      !last5_engine_chassis &&
-      !last6_engine_chassis
+      !chassis6 &&
+      !engine6 &&
+      !reg_last4 &&
+      !engine_or_chassis_last5 &&
+      !engine_or_chassis_last6
     ) {
       return res.status(400).json({
         success: false,
@@ -96,10 +99,19 @@ exports.getRecoveredVehicles = async (req, res) => {
       registration_number,
       chassis_number,
       engine_number,
-      last4_chassis_reg,
-      last4_engine_reg,
-      last5_engine_chassis,
-      last6_engine_chassis
+
+      chassis_first6_reg_last4:
+        chassis6 && reg_last4
+          ? { chassis6, regLast4: reg_last4 }
+          : null,
+
+      engine_first6_reg_last4:
+        engine6 && reg_last4
+          ? { engine6, regLast4: reg_last4 }
+          : null,
+
+      engine_or_chassis_last5,
+      engine_or_chassis_last6
     });
 
     if (!data.length) {
