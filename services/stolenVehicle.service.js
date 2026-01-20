@@ -2,6 +2,22 @@
 
 const db = require("../config/db");
 
+const toMysqlDate = (dateStr) => {
+  if (!dateStr) return null;
+
+  if (dateStr.includes("-")) return dateStr;
+
+  // DD/MM/YYYY or DD/MM/YYYY HH:mm:ss
+  const [datePart, timePart] = dateStr.split(" ");
+  const [dd, mm, yyyy] = datePart.split("/");
+
+  if (!dd || !mm || !yyyy) return null;
+
+  return timePart
+    ? `${yyyy}-${mm}-${dd} ${timePart}`
+    : `${yyyy}-${mm}-${dd}`;
+};
+
 exports.addOrUpdateStolenVehicle = async (payload) => {
   const sql = `
     INSERT INTO stolen_vehicles (
@@ -19,12 +35,15 @@ exports.addOrUpdateStolenVehicle = async (payload) => {
     ) VALUES (
       ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
     )
-    ON DUPLICATE KEY UPDATE
+    ON DUPLICATE KEY UPDATE   
       missing_status = VALUES(missing_status),
       police_station = VALUES(police_station),
       district = VALUES(district),
       state = VALUES(state),
       recovered_from = VALUES(recovered_from),
+      fir_date = VALUES(fir_date),
+      report_datetime = VALUES(report_datetime),
+      stolen_date = VALUES(stolen_date),
       updated_on = VALUES(updated_on),
       is_deleted = VALUES(is_deleted)
   `;
@@ -36,8 +55,8 @@ exports.addOrUpdateStolenVehicle = async (payload) => {
     payload.police_station,
     payload.control_room_no,
     payload.fir_number,
-    payload.fir_date,
-    payload.report_datetime,
+    toMysqlDate(payload.fir_date),
+    toMysqlDate(payload.report_datetime),
     payload.registration_number,
     payload.engine_number,
     payload.chassis_number,
@@ -49,14 +68,14 @@ exports.addOrUpdateStolenVehicle = async (payload) => {
     payload.vehicle_model,
     payload.vehicle_color,
     payload.missing_status,
-    payload.stolen_date,
+    toMysqlDate(payload.stolen_date),
     payload.stolen_from,
     payload.recovered_from,
     payload.vehicle_year,
     payload.insurance_company,
-    payload.created_on,
-    payload.updated_on,
-    payload.is_deleted
+    toMysqlDate(payload.created_on),
+    toMysqlDate(payload.updated_on),
+    payload.is_deleted ? 1 : 0
   ];
 
   return db.query(sql, params);
