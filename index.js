@@ -9,11 +9,17 @@ const authRoutes = require("./routes/auth.routes");
 const adminRoutes = require("./routes/admin.routes");
 const stolenVehicleRoutes = require("./routes/stolenVehicle.routes");
 const syncStolenVehicles = require("./cron/syncStolenVehicles");
+const syncRecoveredVehicles = require("./cron/syncRecoveredVehicle");
 
 //Trigger manual sync on server start.
 (async () => {
+  console.log("🚀 Manual ZIPNET sync started");
+
+  // await syncRecoveredVehicles();
+  // console.log("✅ Recovered vehicles manual sync finished");
   await syncStolenVehicles();
-  console.log("✅ Manual sync finished");
+  console.log("✅ Stolen vehicles manual sync finished");
+
 })();
 
 const app = express();

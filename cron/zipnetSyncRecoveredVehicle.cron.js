@@ -1,12 +1,11 @@
-// zipnetSyncStolenVehicle.cron.js
-
 const axios = require("axios");
 const { wrapper } = require("axios-cookiejar-support");
 const { CookieJar } = require("tough-cookie");
 
 const ZIPNET_BASE_URL = "https://zipnet.delhipolice.gov.in";
-const ZIPNET_URL =
-  "https://zipnet.delhipolice.gov.in/VehiclesMobiles/GetMissingVehiclesData/";
+
+const ZIPNET_RECOVERED_URL =
+  "https://zipnet.delhipolice.gov.in/VehiclesMobiles/GetUnclaimedSeizedVehiclesData";
 
 // In-memory cookie jar
 const cookieJar = new CookieJar();
@@ -22,45 +21,46 @@ const client = wrapper(
       "User-Agent": "Mozilla/5.0",
       "Referer": ZIPNET_BASE_URL,
       "Origin": ZIPNET_BASE_URL
-    }
+    },
+    timeout: 120000
   })
 );
 
 let cookieLogged = false;
 
-// Ensure ZIPNET session (cookie auto-created/refreshed)
+// Ensure ZIPNET session
 async function ensureZipnetSession() {
   await client.get(ZIPNET_BASE_URL);
 }
 
-async function fetchZipnetData(start = 0, length = 10) {
-
+async function fetchZipnetRecoveredData(start = 0, length = 100) {
   try {
     // 🔑 Ensure valid cookie/session
     await ensureZipnetSession();
-    
+
     if (!cookieLogged) {
       const cookies = await cookieJar.getCookies(ZIPNET_BASE_URL);
       console.log("ZIPNET cookies:", cookies.map(c => c.key));
       cookieLogged = true;
     }
 
-    // ⚠️ PAYLOAD IS 100% UNCHANGED
+    // ⚠️ DataTables payload (recovered / unclaimed)
     const payload = new URLSearchParams({
       draw: 1,
       start: start,
       length: length,
+
       "search[value]": "",
       "search[regex]": false,
       searchFormJson: "{}",
 
-      "columns[0][data]": "MissingVehiclesId",
-      "columns[0][name]": "MissingVehiclesId",
+      "columns[0][data]": "UnclaimedSeizedVehiclesId",
+      "columns[0][name]": "UnclaimedSeizedVehiclesId",
       "columns[0][searchable]": true,
       "columns[0][orderable]": true,
 
-      "columns[1][data]": "FIRDate",
-      "columns[1][name]": "FIRDate",
+      "columns[1][data]": "CreatedOn",
+      "columns[1][name]": "CreatedOn",
       "columns[1][searchable]": true,
       "columns[1][orderable]": true,
 
@@ -84,13 +84,13 @@ async function fetchZipnetData(start = 0, length = 10) {
       "columns[5][searchable]": true,
       "columns[5][orderable]": false,
 
-      "columns[6][data]": "FIRNo",
-      "columns[6][name]": "FIRNo",
+      "columns[6][data]": "DDNo",
+      "columns[6][name]": "DDNo",
       "columns[6][searchable]": true,
       "columns[6][orderable]": false,
 
-      "columns[7][data]": "FIRDate",
-      "columns[7][name]": "FIRDate",
+      "columns[7][data]": "DD_Date",
+      "columns[7][name]": "DD_Date",
       "columns[7][searchable]": true,
       "columns[7][orderable]": false,
 
@@ -99,13 +99,13 @@ async function fetchZipnetData(start = 0, length = 10) {
       "columns[8][searchable]": true,
       "columns[8][orderable]": false,
 
-      "columns[9][data]": "VehicleType",
-      "columns[9][name]": "VehicleType",
+      "columns[9][data]": "VehicleModel",
+      "columns[9][name]": "VehicleModel",
       "columns[9][searchable]": true,
       "columns[9][orderable]": false,
 
-      "columns[10][data]": "MissingStatus",
-      "columns[10][name]": "MissingStatus",
+      "columns[10][data]": "Status",
+      "columns[10][name]": "Status",
       "columns[10][searchable]": true,
       "columns[10][orderable]": false,
 
@@ -113,18 +113,21 @@ async function fetchZipnetData(start = 0, length = 10) {
       "order[0][dir]": "desc"
     });
 
-    const response = await client.post(ZIPNET_URL, payload.toString());
+    const response = await client.post(
+      ZIPNET_RECOVERED_URL,
+      payload.toString()
+    );
 
     const rows = response?.data?.data || [];
 
-    console.log("ZIPNET rows fetched:", rows.length);
+    console.log("ZIPNET recovered rows fetched:", rows.length);
 
     return rows;
 
   } catch (err) {
-    console.error("❌ ZIPNET Error:", err.message);
+    console.error("❌ ZIPNET RECOVERED Error:", err.message);
     return [];
   }
 }
 
-module.exports = { fetchZipnetData };
+module.exports = fetchZipnetRecoveredData;

@@ -49,3 +49,10 @@ exports.getAdmins = async ({ page = 1, limit = 10 }) => {
   return { admins, total };
 };
 
+exports.getRecoveredVehiclesCount = async () => {
+  const [[{ total }]] = await db.query(
+    "SELECT COUNT(*) AS total FROM recovered_vehicles"
+  );
+
+  return total;
+};

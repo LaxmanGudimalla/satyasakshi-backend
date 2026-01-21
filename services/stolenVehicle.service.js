@@ -1,4 +1,4 @@
-// services/stolenVehicle.service.js
+// stolenVehicle.service.js
 
 const db = require("../config/db");
 

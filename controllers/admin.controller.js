@@ -38,3 +38,19 @@ exports.listAdmins = async (req, res) => {
   }
 };
 
+exports.getRecoveredVehiclesCount = async (req, res) => {
+  try {
+    const total = await adminService.getRecoveredVehiclesCount();
+
+    res.json({
+      success: true,
+      total
+    });
+  } catch (error) {
+    console.error("Recovered count error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch recovered vehicles count"
+    });
+  }
+};

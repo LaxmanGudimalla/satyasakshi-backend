@@ -1,36 +1,32 @@
-//syncRecoveredVehicle.js
-
-const { fetchZipnetData } = require("./zipnetSyncStolenVehicle.cron");
-const recoveredService = require("../services/recoveredVehicle.service");
+const fetchZipnetRecoveredData = require("./zipnetSyncRecoveredVehicle.cron");
 const mapVehicle = require("./mapZipnetRecoveredVehicle");
+const recoveredService = require("../services/recoveredVehicle.service");
+
+const MAX_RECORDS_TO_CHECK = 10000;
 
 async function syncRecoveredVehicles() {
-  console.log("🔄 Starting full ZIPNET sync...");
+  console.log("🚓 ZIPNET → recovered_vehicles sync started");
 
   let start = 0;
-  const length = 10;
-  let totalInserted = 0;
+  const length = 100;
+  let total = 0;
 
   while (true) {
-    console.log(`➡ Fetching records ${start} to ${start + length}...`);
+    if (start >= MAX_RECORDS_TO_CHECK) break;
 
-    const vehicles = await fetchZipnetData(start, length);
+    const rows = await fetchZipnetRecoveredData(start, length);
+    if (!rows.length) break;
 
-    if (!vehicles || vehicles.length === 0) {
-      console.log("🚫 No more records. Pagination finished.");
-      break;
+    for (const r of rows) {
+      const payload = mapVehicle(r);
+      await recoveredService.addOrUpdateRecoveredVehicle(payload);
+      total++;
     }
 
-    for (const v of vehicles) {
-      const mapped = mapVehicle(v);
-      await recoveredService.addOrUpdateRecoveredVehicle(mapped);
-      totalInserted++;
-    }
-
-    start += length;  // Go to next page
+    start += length;
   }
 
-  console.log(`✅ Sync completed. Total inserted/updated: ${totalInserted}`);
+  console.log(`✅ Recovered vehicles sync complete: ${total}`);
 }
 
 module.exports = syncRecoveredVehicles;

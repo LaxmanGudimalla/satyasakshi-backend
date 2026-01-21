@@ -16,4 +16,12 @@ router.get(
   adminController.listAdmins
 );
 
+router.get(
+  "/admin/recovered/count",
+  verifyToken,
+  allowRoles("ADMIN"),
+  adminController.getRecoveredVehiclesCount
+);
+
+
 module.exports = router;
