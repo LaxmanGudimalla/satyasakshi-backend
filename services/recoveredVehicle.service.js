@@ -39,7 +39,7 @@ exports.checkDuplicateRecoveredVehicle = async ({
   return rows.length > 0 ? rows[0] : null;
 };
 
-
+// To add a new recovered vehicle in the database from Customer side.
 exports.addRecoveredVehicle = async (payload) => {
   const {
     case_status,
@@ -92,12 +92,15 @@ exports.addRecoveredVehicle = async (payload) => {
       recovery_location,
       recovery_date,
       remark
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
+
+  const safeDdNo =
+  dd_no && dd_no.trim() !== "" ? dd_no : "NA";
 
   const [result] = await db.query(insertQuery, [
     case_status,
-    dd_no,
+    safeDdNo,
     registration_number,
     vehicle_type,
     other_vehicle_type,
@@ -115,10 +118,10 @@ exports.addRecoveredVehicle = async (payload) => {
     contact_person,
     email_address,
     contact_number,
-    fir_date,
+    toMysqlDate(fir_date),
     recovery_location,
-    recovery_date,
-    remark
+    toMysqlDate(recovery_date),
+    remark || null
   ]);
 
   return result;
@@ -214,8 +217,9 @@ exports.addOrUpdateRecoveredVehicle = async (p) => {
       fir_number, fir_date,
       recovery_location, recovery_date,
       contact_person, email_address, contact_number,
-      remark
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      remark,
+      created_on
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE
       case_status = VALUES(case_status),
       police_station = VALUES(police_station),
@@ -258,10 +262,62 @@ exports.addOrUpdateRecoveredVehicle = async (p) => {
     p.contact_person,
     p.email_address,
     p.contact_number,
-    p.remark
+    p.remark,
+    p.created_on ? toMysqlDate(p.created_on) : null
   ];
 
   return db.query(sql, params);
 };
 
+exports.commonSearchRecoveredVehicles = async (v) => {
+  const len = v.length;
+
+  let sql = `
+    SELECT * FROM recovered_vehicles
+    WHERE
+      registration_number = ?
+      OR engine_number = ?
+      OR chassis_number = ?
+  `;
+  let params = [v, v, v];
+
+  // 6 engine/chassis + 4 reg
+  if (len === 10) {
+    sql += `
+      OR (
+        LEFT(engine_number,6) = ?
+        AND RIGHT(registration_number,4) = ?
+      )
+      OR (
+        LEFT(chassis_number,6) = ?
+        AND RIGHT(registration_number,4) = ?
+      )
+    `;
+    params.push(
+      v.slice(0, 6), v.slice(6),
+      v.slice(0, 6), v.slice(6)
+    );
+  }
+
+  // Last 6
+  if (len === 6) {
+    sql += `
+      OR RIGHT(engine_number,6) = ?
+      OR RIGHT(chassis_number,6) = ?
+    `;
+    params.push(v, v);
+  }
+
+  // Last 5
+  if (len === 5) {
+    sql += `
+      OR RIGHT(engine_number,5) = ?
+      OR RIGHT(chassis_number,5) = ?
+    `;
+    params.push(v, v);
+  }
+
+  const [rows] = await db.execute(sql, params);
+  return rows;
+};
 

@@ -162,3 +162,55 @@ exports.getStolenVehicles = async (filters) => {
   const [rows] = await db.execute(sql, params);
   return rows;
 };
+
+exports.commonSearchStolenVehicles = async (v) => {
+  const len = v.length;
+
+  let sql = `
+    SELECT * FROM stolen_vehicles
+    WHERE
+      registration_number = ?
+      OR engine_number = ?
+      OR chassis_number = ?
+  `;
+  let params = [v, v, v];
+
+  // 6 engine/chassis + 4 reg
+  if (len === 10) {
+    sql += `
+      OR (
+        LEFT(engine_number,6) = ?
+        AND RIGHT(registration_number,4) = ?
+      )
+      OR (
+        LEFT(chassis_number,6) = ?
+        AND RIGHT(registration_number,4) = ?
+      )
+    `;
+    params.push(
+      v.slice(0, 6), v.slice(6),
+      v.slice(0, 6), v.slice(6)
+    );
+  }
+
+  // Last 6
+  if (len === 6) {
+    sql += `
+      OR RIGHT(engine_number,6) = ?
+      OR RIGHT(chassis_number,6) = ?
+    `;
+    params.push(v, v);
+  }
+
+  // Last 5
+  if (len === 5) {
+    sql += `
+      OR RIGHT(engine_number,5) = ?
+      OR RIGHT(chassis_number,5) = ?
+    `;
+    params.push(v, v);
+  }
+
+  const [rows] = await db.execute(sql, params);
+  return rows;
+};

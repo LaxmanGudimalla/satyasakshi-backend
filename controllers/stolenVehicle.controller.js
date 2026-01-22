@@ -4,6 +4,31 @@ const stolenVehicleService = require("../services/stolenVehicle.service");
 
 exports.getStolenVehicles = async (req, res) => {
   try {
+
+   /* =====================================
+   🔥 COMMON SEARCH (ISOLATED)
+   ===================================== */
+if (req.query.commonSearch) {
+  const v = req.query.commonSearch.trim().toUpperCase();
+
+  const data =
+    await stolenVehicleService.commonSearchStolenVehicles(v);
+
+  if (!data.length) {
+    return res.status(404).json({
+      success: false,
+      message: "Vehicle not found"
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    status: 1,
+    data
+  });
+}
+
+
     const {
       registration_number,
       chassis_number,

@@ -61,8 +61,34 @@ exports.addRecoveredVehicle = async (req, res) => {
       message: "Server error"
     });
   }
-};exports.getRecoveredVehicles = async (req, res) => {
+};
+
+exports.getRecoveredVehicles = async (req, res) => {
   try {
+
+    /* =====================================
+       🔥 COMMON SEARCH (ISOLATED & FIRST)
+       ===================================== */
+    if (req.query.commonSearch) {
+      const v = req.query.commonSearch.trim().toUpperCase();
+
+      const data =
+        await recoveredVehicleService.commonSearchRecoveredVehicles(v);
+
+      if (!data.length) {
+        return res.status(404).json({
+          success: false,
+          message: "Vehicle not found"
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        status: 1,
+        data
+      });
+    }
+
     const {
       registration_number,
       chassis_number,
