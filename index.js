@@ -15,8 +15,8 @@ const syncRecoveredVehicles = require("./cron/syncRecoveredVehicle");
 (async () => {
   console.log("🚀 Manual ZIPNET sync started");
 
-  // await syncRecoveredVehicles();
-  // console.log("✅ Recovered vehicles manual sync finished");
+  await syncRecoveredVehicles();
+  console.log("✅ Recovered vehicles manual sync finished");
   await syncStolenVehicles();
   console.log("✅ Stolen vehicles manual sync finished");
 

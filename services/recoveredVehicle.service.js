@@ -209,6 +209,7 @@ exports.getRecoveredVehicles = async (filters) => {
 exports.addOrUpdateRecoveredVehicle = async (p) => {
   const sql = `
     INSERT INTO recovered_vehicles (
+      zipnet_ref_id,
       dd_no, case_status,
       registration_number, vehicle_type, other_vehicle_type,
       manufacturing_year, engine_number, chassis_number,
@@ -219,7 +220,7 @@ exports.addOrUpdateRecoveredVehicle = async (p) => {
       contact_person, email_address, contact_number,
       remark,
       created_on
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE
       case_status = VALUES(case_status),
       police_station = VALUES(police_station),
@@ -240,6 +241,7 @@ exports.addOrUpdateRecoveredVehicle = async (p) => {
   `;
 
   const params = [
+    p.zipnet_ref_id,
     p.dd_no,
     p.case_status,
     p.registration_number,

@@ -10,7 +10,7 @@ cron.schedule("0 2 * * *", async () => {
   console.log("⏳ Running daily ZIPNET stolen vehicles sync");
   await syncStolenVehicles();
 
-  // console.log("⏳ Running daily ZIPNET recovered vehicles sync");
-  // await syncRecoveredVehicles();
+  console.log("⏳ Running daily ZIPNET recovered vehicles sync");
+  await syncRecoveredVehicles();
 });
 
