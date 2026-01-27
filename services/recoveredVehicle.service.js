@@ -12,6 +12,17 @@ const toMysqlDate = (dateStr) => {
   return `${yyyy}-${mm}-${dd}`;
 };
 
+const cleanText = (val, maxLen = 100) => {
+  if (val === undefined || val === null) return null;
+
+  return val
+    .toString()
+    .replace(/\s+/g, " ")
+    .trim()
+    .substring(0, maxLen);
+};
+
+
 
 exports.checkDuplicateRecoveredVehicle = async ({
   registration_number,
@@ -242,29 +253,29 @@ exports.addOrUpdateRecoveredVehicle = async (p) => {
 
   const params = [
     p.zipnet_ref_id,
-    p.dd_no,
-    p.case_status,
-    p.registration_number,
-    p.vehicle_type,
-    p.other_vehicle_type,
+    cleanText(p.dd_no, 50),
+    cleanText(p.case_status, 50),
+    cleanText(p.registration_number, 20),
+    cleanText(p.vehicle_type, 50),
+    cleanText(p.other_vehicle_type, 50),
     p.manufacturing_year,
-    p.engine_number,
-    p.chassis_number,
-    p.make,
-    p.model,
-    p.color,
-    p.police_station,
-    p.state,
-    p.districts,
-    p.city,
-    p.fir_number,
+    cleanText(p.engine_number, 100),
+    cleanText(p.chassis_number, 100),
+    cleanText(p.make, 100),
+    cleanText(p.model, 100),
+    cleanText(p.color, 50),
+    cleanText(p.police_station, 150),
+    cleanText(p.state, 100),
+    cleanText(p.districts, 100),
+    cleanText(p.city, 100),
+    cleanText(p.fir_number, 100),
     toMysqlDate(p.fir_date),
-    p.recovery_location,
+    cleanText(p.recovery_location, 255),
     toMysqlDate(p.recovery_date),
-    p.contact_person,
-    p.email_address,
-    p.contact_number,
-    p.remark,
+    cleanText(p.contact_person, 150),
+    cleanText(p.email_address, 150),
+    cleanText(p.contact_number, 20),
+    cleanText(p.remark, 500),
     p.created_on ? toMysqlDate(p.created_on) : null
   ];
 
@@ -322,4 +333,3 @@ exports.commonSearchRecoveredVehicles = async (v) => {
   const [rows] = await db.execute(sql, params);
   return rows;
 };
-

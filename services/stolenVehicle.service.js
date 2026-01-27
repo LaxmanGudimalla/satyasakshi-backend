@@ -18,6 +18,17 @@ const toMysqlDate = (dateStr) => {
     : `${yyyy}-${mm}-${dd}`;
 };
 
+const cleanText = (val, maxLen = 100) => {
+  if (!val) return null;
+
+  return val
+    .toString()
+    .replace(/\s+/g, " ")   // normalize spaces
+    .trim()
+    .substring(0, maxLen);
+};
+
+
 exports.addOrUpdateStolenVehicle = async (payload) => {
   const sql = `
     INSERT INTO stolen_vehicles (
@@ -48,35 +59,36 @@ exports.addOrUpdateStolenVehicle = async (payload) => {
       is_deleted = VALUES(is_deleted)
   `;
 
-  const params = [
-    payload.missing_vehicle_id,
-    payload.state,
-    payload.district,
-    payload.police_station,
-    payload.control_room_no,
-    payload.fir_number,
-    toMysqlDate(payload.fir_date),
-    toMysqlDate(payload.report_datetime),
-    payload.registration_number,
-    payload.engine_number,
-    payload.chassis_number,
-    payload.complainant,
-    payload.complainant_phone,
-    payload.address,
-    payload.vehicle_type,
-    payload.vehicle_make,
-    payload.vehicle_model,
-    payload.vehicle_color,
-    payload.missing_status,
-    toMysqlDate(payload.stolen_date),
-    payload.stolen_from,
-    payload.recovered_from,
-    payload.vehicle_year,
-    payload.insurance_company,
-    toMysqlDate(payload.created_on),
-    toMysqlDate(payload.updated_on),
-    payload.is_deleted ? 1 : 0
-  ];
+const params = [
+  payload.missing_vehicle_id,
+  cleanText(payload.state, 50),
+  cleanText(payload.district, 100),
+  cleanText(payload.police_station, 150),
+  cleanText(payload.control_room_no, 20),
+  cleanText(payload.fir_number, 50),
+  toMysqlDate(payload.fir_date),
+  toMysqlDate(payload.report_datetime),
+  cleanText(payload.registration_number, 20),
+  cleanText(payload.engine_number, 50),
+  cleanText(payload.chassis_number, 50),
+  cleanText(payload.complainant, 150),
+  cleanText(payload.complainant_phone, 20),
+  cleanText(payload.address, 255),
+  cleanText(payload.vehicle_type, 50),
+  cleanText(payload.vehicle_make, 150),
+  cleanText(payload.vehicle_model, 100),
+  cleanText(payload.vehicle_color, 50),
+  cleanText(payload.missing_status, 50),
+  toMysqlDate(payload.stolen_date),
+  cleanText(payload.stolen_from, 100),
+  cleanText(payload.recovered_from, 100),
+  payload.vehicle_year,
+  cleanText(payload.insurance_company, 150),
+  toMysqlDate(payload.created_on),
+  toMysqlDate(payload.updated_on),
+  payload.is_deleted ? 1 : 0
+];
+
 
   return db.query(sql, params);
 };

@@ -54,3 +54,20 @@ exports.getRecoveredVehiclesCount = async (req, res) => {
     });
   }
 };
+
+exports.getStolenVehiclesCount = async (req, res) => {
+  try {
+    const total = await adminService.getStolenVehiclesCount();
+
+    res.json({
+      success: true,
+      total
+    });
+  } catch (error) {
+    console.error("Stolen count error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch stolen vehicles count"
+    });
+  }
+};

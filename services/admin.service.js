@@ -56,3 +56,12 @@ exports.getRecoveredVehiclesCount = async () => {
 
   return total;
 };
+
+exports.getStolenVehiclesCount = async () => {
+  const [[{ total }]] = await db.query(
+    "SELECT COUNT(*) AS total FROM stolen_vehicles"
+  );
+
+  return total;
+};
+
