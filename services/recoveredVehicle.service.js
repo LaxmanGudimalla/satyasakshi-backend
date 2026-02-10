@@ -24,28 +24,75 @@ const cleanText = (val, maxLen = 100) => {
 
 
 
+// exports.checkDuplicateRecoveredVehicle = async ({
+//   registration_number,
+//   engine_number,
+//   chassis_number
+// }) => {
+//   const query = `
+//     SELECT
+//       registration_number,
+//       engine_number,
+//       chassis_number
+//     FROM recovered_vehicles
+//     WHERE registration_number = ?
+//        OR engine_number = ?
+//        OR chassis_number = ?
+//     LIMIT 1
+//   `;
+
+//   const [rows] = await db.query(query, [
+//     registration_number,
+//     engine_number,
+//     chassis_number
+//   ]);
+
+//   return rows.length > 0 ? rows[0] : null;
+// };
+
 exports.checkDuplicateRecoveredVehicle = async ({
   registration_number,
   engine_number,
   chassis_number
 }) => {
+  let conditions = [];
+  let params = [];
+
+  if (registration_number && registration_number.trim() !== "") {
+    conditions.push("registration_number = ?");
+    params.push(registration_number.trim());
+  }
+
+  if (engine_number && engine_number.trim() !== "") {
+    conditions.push("engine_number = ?");
+    params.push(engine_number.trim());
+  }
+
+  if (chassis_number && chassis_number.trim() !== "") {
+    conditions.push("chassis_number = ?");
+    params.push(chassis_number.trim());
+  }
+
+  if (conditions.length === 0) return null;
+
+  const whereClause = conditions.join(" OR ");
+
+  // Check BOTH tables
   const query = `
-    SELECT
-      registration_number,
-      engine_number,
-      chassis_number
+    SELECT registration_number, engine_number, chassis_number, 'official' AS source
     FROM recovered_vehicles
-    WHERE registration_number = ?
-       OR engine_number = ?
-       OR chassis_number = ?
+    WHERE ${whereClause}
+
+    UNION
+
+    SELECT registration_number, engine_number, chassis_number, 'customer' AS source
+    FROM customer_recovered_vehicles
+    WHERE ${whereClause}
+
     LIMIT 1
   `;
 
-  const [rows] = await db.query(query, [
-    registration_number,
-    engine_number,
-    chassis_number
-  ]);
+  const [rows] = await db.query(query, [...params, ...params]);
 
   return rows.length > 0 ? rows[0] : null;
 };
@@ -79,7 +126,7 @@ exports.addRecoveredVehicle = async (payload) => {
   } = payload;
 
   const insertQuery = `
-    INSERT INTO recovered_vehicles (
+    INSERT INTO customer_recovered_vehicles (
       case_status,
       dd_no,
       registration_number,

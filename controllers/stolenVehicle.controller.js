@@ -122,3 +122,50 @@ if (req.query.commonSearch) {
     });
   }
 };
+
+//for customer adding the stolen vehicle
+exports.addCustomerStolenVehicle = async (req, res) => {
+  try {
+    const payload = req.body;
+
+    if (!payload.registration_number) {
+      return res.status(400).json({
+        success: false,
+        message: "registration_number is required"
+      });
+    }
+
+    // 🔍 Duplicate check
+    const duplicate = await stolenVehicleService.checkDuplicateStolenVehicle({
+      registration_number: payload.registration_number,
+      engine_number: payload.engine_number,
+      chassis_number: payload.chassis_number
+    });
+
+    if (duplicate) {
+      return res.status(409).json({
+        success: false,
+        message:
+          duplicate.source === "official"
+            ? "Vehicle already exists in official stolen records"
+            : "Vehicle already submitted by another customer"
+      });
+    }
+
+    // Save to customer table
+    const result = await stolenVehicleService.addCustomerStolenVehicle(payload);
+
+    res.status(201).json({
+      success: true,
+      message: "Stolen vehicle submitted successfully",
+      data: { id: result.insertId }
+    });
+
+  } catch (error) {
+    console.error("❌ Customer Stolen Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+  }
+};

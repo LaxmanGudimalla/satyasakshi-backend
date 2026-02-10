@@ -10,6 +10,7 @@ const adminRoutes = require("./routes/admin.routes");
 const stolenVehicleRoutes = require("./routes/stolenVehicle.routes");
 const syncStolenVehicles = require("./cron/syncStolenVehicles");
 const syncRecoveredVehicles = require("./cron/syncRecoveredVehicle");
+const superAdminRoutes = require("./routes/superAdmin.routes");
 
 //Trigger manual sync on server start.
 (async () => {
@@ -34,6 +35,7 @@ app.use("/api", recoveredVehicleRoutes);
 app.use("/api", authRoutes);
 app.use("/api", adminRoutes);
 app.use("/api", stolenVehicleRoutes);
+app.use("/api/super-admin", superAdminRoutes);
 
 
 app.listen(8080, () => {

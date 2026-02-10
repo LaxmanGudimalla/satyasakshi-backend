@@ -1,5 +1,6 @@
 const recoveredVehicleService = require("../services/recoveredVehicle.service");
 
+//for customer adding the recoverd vehicle
 exports.addRecoveredVehicle = async (req, res) => {
   try {
     const payload = req.body;
@@ -35,11 +36,14 @@ exports.addRecoveredVehicle = async (req, res) => {
         errors.chassis_number = "Chassis number already exists";
       }
 
-      return res.status(409).json({
-        success: false,
-        message: "Vehicle already exists",
-        errors
-      });
+   return res.status(409).json({
+  success: false,
+  message:
+    duplicate.source === "official"
+      ? "Vehicle already exists in official records"
+      : "Vehicle already submitted by another customer",
+  errors
+});
     }
 
     // ✅ INSERT IF NO DUPLICATE

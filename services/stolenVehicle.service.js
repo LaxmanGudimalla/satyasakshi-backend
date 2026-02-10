@@ -226,3 +226,79 @@ exports.commonSearchStolenVehicles = async (v) => {
   const [rows] = await db.execute(sql, params);
   return rows;
 };
+
+// To add a new stolen vehicle in the database from Customer side.
+exports.addCustomerStolenVehicle = async (payload) => {
+  const sql = `
+    INSERT INTO customer_stolen_vehicles (
+      state, district, police_station,
+      fir_number, fir_date,
+      registration_number, engine_number, chassis_number,
+      vehicle_type, vehicle_make, vehicle_model, vehicle_color
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  const params = [
+    cleanText(payload.state, 50),
+    cleanText(payload.district, 100),
+    cleanText(payload.police_station, 150),
+    cleanText(payload.fir_number, 50),
+    toMysqlDate(payload.fir_date),
+    cleanText(payload.registration_number, 20),
+    cleanText(payload.engine_number, 50),
+    cleanText(payload.chassis_number, 50),
+    cleanText(payload.vehicle_type, 50),
+    cleanText(payload.make, 150),
+    cleanText(payload.model, 100),
+    cleanText(payload.color, 50)
+  ];
+
+  const [result] = await db.query(sql, params);
+  return result;
+};
+
+exports.checkDuplicateStolenVehicle = async ({
+  registration_number,
+  engine_number,
+  chassis_number
+}) => {
+  let conditions = [];
+  let params = [];
+
+  if (registration_number && registration_number.trim() !== "") {
+    conditions.push("registration_number = ?");
+    params.push(registration_number.trim());
+  }
+
+  if (engine_number && engine_number.trim() !== "") {
+    conditions.push("engine_number = ?");
+    params.push(engine_number.trim());
+  }
+
+  if (chassis_number && chassis_number.trim() !== "") {
+    conditions.push("chassis_number = ?");
+    params.push(chassis_number.trim());
+  }
+
+  if (conditions.length === 0) return null;
+
+  const whereClause = conditions.join(" OR ");
+
+  const query = `
+    SELECT registration_number, engine_number, chassis_number, 'official' AS source
+    FROM stolen_vehicles
+    WHERE ${whereClause}
+
+    UNION
+
+    SELECT registration_number, engine_number, chassis_number, 'customer' AS source
+    FROM customer_stolen_vehicles
+    WHERE ${whereClause}
+
+    LIMIT 1
+  `;
+
+  const [rows] = await db.query(query, [...params, ...params]);
+
+  return rows.length > 0 ? rows[0] : null;
+};
